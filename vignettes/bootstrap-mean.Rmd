@@ -1,0 +1,112 @@
+---
+title: "Confidence Intervals for a Population Mean"
+author: "Silas Bambil and Yasmeen Babagana"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Confidence Intervals for a Population Mean}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Estimate a mean
+
+The package calculates intervals for the ordinary population mean. This example
+uses independent normal observations with known population mean 2.
+
+```{r}
+library(bambaganaCI)
+set.seed(1998)
+x <- rnorm(30, mean = 2, sd = 1)
+standard <- mean_t_ci(x)
+set.seed(1998)
+bootstrap <- bootstrap_mean_ci(x, B = 2000)
+standard
+bootstrap
+```
+
+The standard t interval has exact coverage under the independent normal model
+with common positive variance. Bootstrap coverage depends on the population,
+sample size, interval method, and resampling accuracy.
+
+## Extract results
+
+```{r}
+coef(bootstrap)
+confint(bootstrap)
+rbind(as.data.frame(standard), as.data.frame(bootstrap))
+bootstrap$diagnostics
+```
+
+`confint()` extracts the stored interval. To request a different confidence level,
+recalculate using `conf`; it cannot simply relabel the existing interval.
+
+```{r}
+set.seed(1998)
+interval_90 <- bootstrap_mean_ci(x, conf = 0.90)
+confint(interval_90)
+```
+
+The `$estimate`, `$lower`, `$upper`, and `$bootstrap_means` fields remain available
+for existing code. Bootstrap SE is the standard deviation of the resampled means;
+it is not the standard deviation of the original observations.
+
+## Compare supported methods on one sample
+
+```{r}
+methods <- c("percentile", "basic", "normal", "bca")
+comparison <- lapply(methods, function(method) {
+  set.seed(1998)
+  as.data.frame(bootstrap_mean_ci(x, B = 2000, method = method))
+})
+do.call(rbind, comparison)
+```
+
+Percentile uses type-7 quantiles; basic reflects these about the sample mean.
+Normal uses estimated bootstrap bias correction and bootstrap SE. BCa delegates
+to `boot::boot.ci`, whose interpolation convention differs from type-7 quantiles.
+No ranking of these methods can be established from one observed sample.
+
+## Numerical protection
+
+```{r}
+set.seed(1998)
+tiny <- bootstrap_mean_ci((1:10) * 1e-200)
+set.seed(1998)
+ordinary <- bootstrap_mean_ci(1:10)
+c(tiny_SE_in_original_units = tiny$bootstrap_se / 1e-200,
+  ordinary_SE = ordinary$bootstrap_se)
+```
+
+Extreme magnitudes and large offsets use centered, scaled arithmetic.
+Unrepresentable intervals produce an error. Scaling protects computation;
+it does not change the statistical assumptions.
+
+## Interpretation and limitations
+
+A 95% confidence procedure aims to contain the fixed population mean in 95% of
+repeated samples under its assumptions. This is not a 95% probability statement
+about the fixed mean after observing this particular interval. For the simulated
+example we can check this interval's inclusion, but one result cannot establish
+coverage:
+
+```{r}
+bootstrap$lower <= 2 && 2 <= bootstrap$upper
+```
+
+The authors' 10,000-dataset stress studies found substantial BCa undercoverage
+and percentile undercoverage for scaled t(3) and contaminated normal data at
+sample sizes 30 and 100. See the README for the reported results. Finite variance
+alone does not guarantee BCa higher-order accuracy. The mean remains sensitive
+to outliers, and ordinary resampling is inappropriate for clustered or dependent
+data without a suitable design.
+
+Constant observations produce a zero-width empirical bootstrap interval; this
+is not evidence of zero population uncertainty. The t function rejects constant
+samples. Bootstrap results report degeneracy and scaling diagnostics. Retained
+warnings should be inspected rather than suppressed in routine analysis.
+
+## Software environment
+
+```{r}
+sessionInfo()
+```

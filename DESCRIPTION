@@ -1,0 +1,26 @@
+Package: bambaganaCI
+Title: Confidence Intervals for a Population Mean
+Version: 0.1.0
+Authors@R: c(
+    person("Silas", "Bambil", , "sbambil1@student.gsu.edu", role = c("aut", "cre")),
+    person("Yasmeen", "Babagana", email = "ybabagana1@student.gsu.edu", role = "aut")
+  )
+Description: Constructs percentile, basic, normal, and bias-corrected and
+    accelerated bootstrap confidence intervals for a population mean.
+    Provides resampled means, bootstrap standard errors, input validation,
+    and readable output. Bias-corrected and accelerated intervals use the
+    established boot package. Also provides standard t confidence intervals
+    and common methods for extracting estimates and interval summaries.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports: 
+    boot,
+    stats
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
