@@ -2,6 +2,10 @@
 #'
 #' Compare percentile, basic, normal, BCa, and classical t intervals.
 #' Bootstrap methods use a common set of resamples.
+#' This function uses boot::boot() for all bootstrap methods, whereas
+#' bootstrap_mean_ci() preserves sample() resampling for non-BCa methods.
+#' Consequently, identical RNG seeds need not yield identical replicates
+#' between these two interfaces.
 #'
 #' @param x Numeric vector of finite observations.
 #' @param B Number of bootstrap resamples.
@@ -41,7 +45,7 @@ compare_mean_ci <- function(
   bootstrap_methods <- intersect(methods,
     c('percentile', 'basic', 'normal', 'bca'))
 
-  if (length(bootstrap_methods) &&
+  if (any(bootstrap_methods %in% c('percentile', 'basic', 'bca')) &&
       !all(x == x[1L]) && B * (1 - conf) / 2 < 1) {
     warning('Too few resamples in the interval tails;',
             ' increase B.', call. = FALSE)
@@ -91,7 +95,8 @@ compare_mean_ci <- function(
 
     values <- unlist(out[c('estimate', 'lower', 'upper', 'width')],
                      use.names = FALSE)
-    if (any(!is.finite(values)) || any(out$lower > out$upper)) {
+    if (any(!is.finite(values)) || any(out$lower > out$upper) ||
+        any(out$width < 0)) {
       stop('Interval cannot be represented accurately.')
     }
 
@@ -160,7 +165,7 @@ compare_mean_ci <- function(
   output <- do.call(rbind, lapply(methods, function(method) {
     ci <- intervals[[method]]
     if (length(ci) != 2L || any(!is.finite(ci)) ||
-        ci[1L] > ci[2L]) {
+        ci[1L] > ci[2L] || !is.finite(ci[2L] - ci[1L])) {
       stop('A valid interval could not be computed.')
     }
     data.frame(

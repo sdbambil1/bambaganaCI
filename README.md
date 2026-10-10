@@ -2,7 +2,7 @@
 
 **Confidence intervals for a population mean in R.**
 
-Version 0.3.0
+Current package version: 0.1.1
 
 Authors: Silas Bambil and Yasmeen Babagana.
 
@@ -28,11 +28,11 @@ comparing multiple intervals on the same dataset.
 
 ## Installation
 
-Install from the local source archive:
+Install from a local source archive after downloading it to your computer:
 
 ```r
 install.packages(
-  "bambaganaCI_0.1.0.tar.gz",
+  "bambaganaCI_0.1.1.tar.gz",
   repos = NULL,
   type = "source"
 )
@@ -41,7 +41,8 @@ library(bambaganaCI)
 ```
 
 The `boot` package is an imported dependency.
-This package is not currently on CRAN.
+This package is not currently on CRAN. The original v0.1.0 archive is unchanged;
+the maintenance updates are being tested separately.
 
 ## Basic example
 
@@ -95,7 +96,9 @@ compare_mean_ci(
 )
 ```
 
-Bootstrap methods in the comparison share resamples.
+Bootstrap methods within a single `compare_mean_ci()` call share resamples.
+A separate call to `bootstrap_mean_ci()` may use a different resampling stream
+even with the same seed, so do not expect identical endpoints across functions.
 The classical t interval does not require resampling.
 
 ## Classical t confidence interval
@@ -132,7 +135,9 @@ population uncertainty. The classical t interval
 rejects constant samples.
 
 BCa endpoints can be sensitive to tied bootstrap
-statistics and floating-point rounding.
+statistics, floating-point rounding, and poorly resolved bootstrap tails.
+BCa is not guaranteed to have better coverage than simpler intervals,
+particularly with small samples, heavy tails, or contamination.
 
 Set the random seed before calling bootstrap functions
 when reproducibility is required.
@@ -147,8 +152,9 @@ A separate Monte Carlo validation study evaluated
 confidence interval coverage and width under normal,
 exponential, heavy-tailed, and contaminated sampling.
 
-The study used 10,000 Monte Carlo replications per
-setting and 2,000 bootstrap resamples.
+The separate validation study used 10,000 Monte Carlo replications per
+setting and 2,000 bootstrap resamples. It is not bundled as part of
+the package installation.
 
 Validation results describe performance under the
 evaluated simulation conditions; they do not guarantee

@@ -57,6 +57,11 @@ as.data.frame.mean_ci <- function(x, row.names = NULL, optional = FALSE, ...) {
 #' @rdname mean_ci_methods
 #' @export
 print.mean_t_ci <- function(x, digits = 4L, ...) {
+  if (!is.numeric(digits) || length(digits) != 1L ||
+      !is.finite(digits) || digits != floor(digits) ||
+      digits < 1L || digits > 22L) {
+    stop("digits must be a single whole number from 1 to 22.")
+  }
   cat(sprintf("%g%% standard t confidence interval for the mean\n", 100 * x$conf))
   cat("Sample size:", x$n, " | Degrees of freedom:", x$df, "\n")
   cat("Estimate:", format(signif(x$estimate, digits)), "\n")

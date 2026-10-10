@@ -13,6 +13,9 @@
 #' intervals use the bootstrap standard error and estimated bias correction.
 #' BCa intervals delegate to boot::boot.ci, with influence values x - mean(x).
 #' BCa uses boot's interpolation convention, rather than type-7 quantiles.
+#' The non-BCa methods use sample() resampling for backwards compatibility,
+#' whereas BCa and compare_mean_ci use boot::boot(). Consequently, the same
+#' seed need not generate identical replicates across those entry points.
 #' BCa needs at least three nonconstant observations and can be unstable for
 #' small samples. Warnings from boot are retained. Set the seed outside this
 #' function. Increasing B reduces resampling noise, not sampling bias or
@@ -159,6 +162,11 @@ bootstrap_mean_ci <- function(x, B = 2000, conf = 0.95,
 #' @return Invisibly returns x.
 #' @export
 print.bootmean_ci <- function(x, digits = 4L, ...) {
+  if (!is.numeric(digits) || length(digits) != 1L ||
+      !is.finite(digits) || digits != floor(digits) ||
+      digits < 1L || digits > 22L) {
+    stop("digits must be a single whole number from 1 to 22.")
+  }
   cat(sprintf("%g%% %s bootstrap confidence interval for the mean\n",
               100 * x$conf, x$method))
   cat("Sample size:", x$n, " | Resamples:", x$B, "\n")
