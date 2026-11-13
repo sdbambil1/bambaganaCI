@@ -15,10 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Confirm candidate version
+      - name: Verify exact candidate archive
         shell: bash
         run: |
-          test "$(sed -n 's/^Version: //p' DESCRIPTION | tr -d '\r')" = "0.3.4"
+          test -f validation/bambaganaCI_0.3.4.tar.gz
+          tar -xzOf validation/bambaganaCI_0.3.4.tar.gz bambaganaCI/DESCRIPTION | grep -q '^Version: 0.3.4$'
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -30,12 +31,11 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - name: Check package on Linux as CRAN
+      - name: Check uploaded source archive on Linux
         shell: bash
         run: |
           set -euo pipefail
-          R CMD build . 2>&1 | tee build.log
-          R CMD check --as-cran --no-manual bambaganaCI_0.3.4.tar.gz 2>&1 | tee check-console.log
+          R CMD check --as-cran --no-manual validation/bambaganaCI_0.3.4.tar.gz 2>&1 | tee check-console.log
           grep '^Status:' bambaganaCI.Rcheck/00check.log
 
       - name: Upload check logs
@@ -44,7 +44,6 @@ jobs:
         with:
           name: linux-cran-v034-logs
           path: |
-            build.log
             check-console.log
             bambaganaCI.Rcheck/00check.log
           if-no-files-found: warn
