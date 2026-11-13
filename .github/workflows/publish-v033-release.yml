@@ -1,0 +1,31 @@
+name: Publish validated v0.3.3 release
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v033-release.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify and publish v0.3.3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TARGET="cbf61d4b273a2614663982f39d17347bb55fa48d"
+          gh api "repos/$GH_REPO/commits/$TARGET" --jq .sha | grep -Fx "$TARGET"
+          if gh release view v0.3.3 --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "v0.3.3 release already exists. No duplicate created."
+            exit 0
+          fi
+          gh release create v0.3.3 \
+            --repo "$GH_REPO" \
+            --target "$TARGET" \
+            --title "bambaganaCI v0.3.3" \
+            --latest \
+            --notes "Expanded to 40 statistical functions and 43 public exports. Added readable bambagana() commands, function discovery, improved display, confidence intervals, bootstrap methods, classical tests, regression and ANOVA. Original numerical methods preserved. Validated with R CMD check --no-manual: Status OK on macOS R 4.4.1."
+          gh release view v0.3.3 --repo "$GH_REPO" --json url,tagName,targetCommitish
