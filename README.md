@@ -28,7 +28,16 @@ comparing multiple intervals on the same dataset.
 
 ## Installation
 
-Install from a local source archive after downloading it to your computer:
+Install the current package source from the public GitHub repository:
+
+```r
+install.packages("remotes")  # If remotes is not already installed
+remotes::install_github("sdbambil1/bambaganaCI")
+
+library(bambaganaCI)
+```
+
+Alternatively, if you already have a source archive on your computer:
 
 ```r
 install.packages(
@@ -36,13 +45,11 @@ install.packages(
   repos = NULL,
   type = "source"
 )
-
-library(bambaganaCI)
 ```
 
-The `boot` package is an imported dependency.
-This package is not currently on CRAN. The original v0.1.0 archive is unchanged;
-the maintenance updates are being tested separately.
+The `boot` package is an imported dependency. This package is not currently
+on CRAN. The GitHub installation command uses the current repository source;
+it does not imply a CRAN release or a separately verified installation.
 
 ## Basic example
 
