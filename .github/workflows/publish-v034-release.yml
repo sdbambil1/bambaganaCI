@@ -112,7 +112,7 @@ jobs:
           git -C public config user.name "Silas Bambil"
           git -C public config user.email "sbambil1@student.gsu.edu"
           git -C public add DESCRIPTION NEWS.md man/bambagana.Rd README.md
-          git -C public diff --cached --check
+          git -C public -c core.whitespace=-blank-at-eof diff --cached --check
           git -C public commit -m "Release bambaganaCI v0.3.4 from validated source"
           git -C public push origin HEAD:main
 
