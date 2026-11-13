@@ -1,26 +1,23 @@
 Package: bambaganaCI
-Title: Confidence Intervals for a Population Mean
-Version: 0.1.1
+Title: Confidence Intervals and Classical Statistical Inference
+Version: 0.3.3
 Authors@R: c(
     person("Silas", "Bambil", , "sbambil1@student.gsu.edu", role = c("aut", "cre")),
     person("Yasmeen", "Babagana", email = "ybabagana1@student.gsu.edu", role = "aut")
   )
-Description: Constructs percentile, basic, normal, and bias-corrected and
-    accelerated bootstrap confidence intervals for a population mean.
-    Provides resampled means, bootstrap standard errors, input validation,
-    and readable output. Bias-corrected and accelerated intervals use the
-    established boot package. Also provides standard t confidence intervals
-    and common methods for extracting estimates and interval summaries.
+Description: Provides confidence intervals, tests, descriptive summaries,
+    association measures, classical linear-model inference, analysis of variance,
+    and model-based power planning. Retains bootstrap inference for a population
+    mean and adds validated interfaces to established statistical methods in R.
+    Documents method assumptions and preserves reference warnings.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+RoxygenNote: 7.3.1
 Imports: boot, stats
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2026-10-10 07:38:47 UTC; sbambil1
-Author: Silas Bambil [aut, cre],
-  Yasmeen Babagana [aut]
-Maintainer: Silas Bambil <sbambil1@student.gsu.edu>
+URL: https://github.com/sdbambil1/bambaganaCI
+BugReports: https://github.com/sdbambil1/bambaganaCI/issues

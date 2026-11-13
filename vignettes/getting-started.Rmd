@@ -1,0 +1,296 @@
+---
+title: "Getting started with bambaganaCI"
+author: "Silas Bambil and Yasmeen Babagana"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with bambaganaCI}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Start with your question
+
+The package provides 40 statistical functions and a searchable method catalog.
+Choose a statistical procedure based on the quantity you want to estimate
+and your study design. A sample mean, a proportion, and a
+median answer different questions. A paired comparison needs matched observations.
+The package does not automatically select a valid method for your data.
+
+| Your question | Function |
+|---|---|
+| What do these observations look like? | `describe_numeric()` |
+| What is the population mean? | `mean_t_ci()` or `bootstrap_mean_ci()` |
+| What proportion of trials succeed? | `proportion_ci()` |
+| What is the population median? | `median_ci()` |
+| How do independent group means differ? | `mean_difference_ci()` |
+| How do matched observations differ? | `paired_mean_ci()` |
+| How are two variables associated? | `correlation_estimate()` or `correlation_ci()` |
+| How does a response relate to predictors? | `ols_fit()` |
+| How many observations should I plan? | `sample_size_mean()` |
+
+## Find a statistical method
+
+Use `bambagana_catalog()` to explore available methods.
+Search by a statistical topic, function name, or description.
+The catalog helps locate functions; it does not select
+a statistically valid method for a particular dataset.
+
+```{r}
+library(bambaganaCI)
+bambagana_catalog("confidence")
+bambagana_catalog("regression")
+```
+
+For an individual method, consult its help page to review
+the arguments, assumptions, and returned results.
+
+```{r, eval=FALSE}
+?mean_t_ci
+```
+
+## Load the package and describe your data
+
+Replace these illustrative scores with your own independent observations.
+No packages are installed by this vignette.
+
+```{r}
+set.seed(1998)
+scores <- c(8, 10, 12, 9, 15, 11, 13, 10, 14, 12)
+describe_numeric(scores)
+```
+
+The mean summarizes the ordinary average; the standard deviation describes
+variation between observations. The standard error of the mean describes
+uncertainty in the estimated mean. These are different quantities.
+
+```{r}
+mean_se(scores)
+mean_t_ci(scores)
+```
+
+The t interval has exact coverage under independent normal sampling with common
+positive variance. Outside that model it is approximate. It estimates the
+population mean, not the range containing 95% of individual observations.
+
+A percentile bootstrap interval resamples the observed scores. It is an
+alternative construction with its own coverage limitations, especially for
+small, skewed or heavy-tailed samples.
+
+```{r}
+set.seed(1998)
+bootstrap_mean_ci(scores, B = 2000, method = "percentile")
+```
+
+## Estimate a proportion
+
+Suppose 40 of 100 independent trials were successes.
+
+```{r}
+p <- proportion_ci(successes = 40, trials = 100, method = "wilson")
+p
+```
+
+The estimate is 40%. The interval describes uncertainty about the common
+population success probability. Its coverage is approximate. Selecting
+`method = "exact"` uses a conservative exact binomial interval instead.
+Neither choice fixes dependence between trials or biased sampling.
+
+The displayed percentages leave the stored values on their original 0-to-1 scale.
+
+```{r}
+p$estimate
+coef(p)
+confint(p)
+as.data.frame(p)
+```
+
+The table is suitable for saving or combining. `confint()` only extracts existing
+limits. To change the level, recalculate with `conf = 0.90`; relabeling an existing
+95% interval as 90% would be incorrect.
+
+```{r}
+proportion_ci(40, 100, conf = 0.90)
+```
+
+## Compare two independent groups
+
+These illustrative measurements represent separate, independent groups.
+
+```{r}
+group1 <- c(8, 10, 12, 9, 15, 11, 13, 10, 14, 12)
+group2 <- c(10, 12, 14, 13, 16, 14, 11, 15, 13, 12)
+comparison <- mean_difference_ci(group1, group2)
+comparison
+```
+
+The difference is **group 1 minus group 2**. A negative estimate means group 1's
+sample mean is smaller. The default is Welch inference. Use paired methods only
+when observations are actually matched; equal sample sizes alone do not make
+observations paired. A confidence interval including zero does not establish
+that the two population means are identical.
+
+## Test a statistical claim
+
+Confidence intervals estimate an unknown population quantity.
+Hypothesis tests assess a specified claim about that quantity.
+The choice of test depends on the study design and assumptions.
+
+### Test a population mean
+
+Suppose the question is whether the population mean score
+differs from 10. The null hypothesis states that the mean
+equals 10; the alternative states that it differs from 10.
+
+```{r}
+mean_test(scores, mu = 10)
+```
+
+The p-value measures how unusual the observed test statistic
+would be, under the null hypothesis and the test assumptions.
+It is not the probability that the null hypothesis is true.
+A small p-value provides evidence against the stated null
+hypothesis; it does not measure practical importance.
+
+### Compare two independent means
+
+For the two independent groups defined earlier,
+the corresponding Welch test is:
+
+```{r}
+two_mean_test(group1, group2)
+```
+
+This test examines whether the population mean difference
+is zero. Its default uses Welch's approximate degrees
+of freedom rather than assuming equal variances.
+A non-significant result does not establish that the
+population means are equal.
+
+For matched observations, use `paired_mean_test()` instead.
+Pairing must follow the data collection design.
+
+## Fit a linear model
+
+R's built-in `mtcars` data provide an executable illustration. The example does
+not establish causal effects or demonstrate that the model assumptions hold.
+
+```{r}
+model <- ols_fit(mpg ~ wt + hp, data = mtcars)
+ols_coef_ci(model)
+ols_predict_ci(model, data.frame(wt = 3, hp = 150), interval = "confidence")
+ols_predict_ci(model, data.frame(wt = 3, hp = 150), interval = "prediction")
+```
+
+A confidence interval concerns the mean response at those predictor values.
+A prediction interval concerns a future individual response. These are classical
+OLS calculations, not heteroscedasticity-robust or clustered inference. Their
+assumptions require review for the intended application.
+
+## Plan a sample size
+
+```{r}
+sample_size_mean(delta = 0.5, sd = 1, power = 0.8)
+```
+
+This plans a one-sample t test to detect a difference of 0.5 units under a
+normal-model SD of 1. It rounds the sample size up and reports achieved model-based
+power. For `type = "two.sample"`, the returned size is **per group**, with equal
+sizes and variances assumed. For `type = "paired"`, `sd` is the SD of pair differences.
+
+## Find all functions and help
+
+```{r, eval=FALSE}
+bambagana_catalog()
+sort(getNamespaceExports("bambaganaCI"))
+help(package = "bambaganaCI")
+help("proportion_ci", package = "bambaganaCI")
+example("proportion_ci", package = "bambaganaCI")
+vignette("getting-started", package = "bambaganaCI")
+```
+
+Missing and infinite observations are rejected rather than silently dropped.
+Choose how to handle missingness before calling the package and record that choice.
+Read warnings: a function returning an interval is not proof of reliable coverage.
+
+
+<!-- BEGIN BAMBAGANA SIMPLE INPUT GUIDE -->
+
+## Running an analysis with `bambagana()`
+
+The `bambagana()` interface is designed for common analyses
+without requiring users to memorize individual function names.
+
+```{r bambagana-simple-input-guide}
+library(bambaganaCI)
+
+scores <- c(65, 72, 68, 75, 70, 78, 74, 69, 73, 76)
+
+# Mean confidence interval
+bambagana("mean", scores)
+
+# Test the hypothesis that the population mean equals 70
+bambagana("test mean", scores, mu = 70)
+
+# Proportion: successes first, trials second
+bambagana("proportion", c(65, 100))
+
+# Compare independent proportions
+bambagana("compare proportions", c(65, 100), c(45, 100))
+```
+
+The same function can compare means or evaluate paired data:
+
+```{r bambagana-group-examples}
+group_A <- c(65, 72, 68, 75, 70, 78, 74, 69, 73, 76)
+group_B <- c(71, 79, 75, 82, 77, 85, 80, 74, 78, 81)
+
+bambagana("compare means", group_A, group_B)
+bambagana("test two means", group_A, group_B)
+```
+
+The statistical result can be saved and reused:
+
+```{r bambagana-result-access}
+result <- bambagana("mean", scores, display = FALSE)
+
+result$estimate
+result$lower
+result$upper
+```
+
+By default, `bambagana()` displays the analysis in the console.
+Set `display = FALSE` to retrieve the result without displaying it.
+
+For additional analyses and examples, run:
+
+```r
+bambagana("methods")
+```
+
+Individual functions remain available for direct statistical work.
+The simplified interface does not change their computations.
+
+
+### Descriptive statistics and interpretation
+
+```{r bambagana-descriptive-output}
+bambagana("describe", scores)
+```
+
+The output is formatted for reading while the underlying data-frame result remains available for further analysis. Proportion intervals preserve their percentage units, and two-sample tests distinguish sample differences from population-level evidence.
+
+<!-- END BAMBAGANA SIMPLE INPUT GUIDE -->
+
+
+
+## Accessing the complete statistical library
+
+The simplified interface supports all exported statistical functions through readable command names.
+
+```{r full-bambagana-catalog}
+functions <- bambagana("all functions", display = FALSE)
+head(functions)
+```
+
+The table provides command names and corresponding function signatures. Results retain their original statistical structure.
+

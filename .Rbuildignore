@@ -1,15 +1,3 @@
-^bootmean\.Rproj$
-^\.Rproj\.user$
-^LICENSE\.md$
-^experiments$
-\.backup(-.*)?$
-\.before-scaling-fix$
-^validation$
+^FUNCTIONS\.md$
+^README\.md$
 ^\.github$
-^\.DS_Store$
-^tests/run_tests\.R$
-^tests/test_shiny\.R$
-^Project_Report_Bambil_Babagana\.Rmd$
-^Project_Report_Bambil_Babagana\.pdf$
-^validate_exp100\.R$
-^validation_exp100_.*$

@@ -26,4 +26,8 @@ A data frame containing interval estimates and widths.
 \description{
 Compare percentile, basic, normal, BCa, and classical t intervals.
 Bootstrap methods use a common set of resamples.
+This function uses boot::boot() for all bootstrap methods, whereas
+bootstrap_mean_ci() preserves sample() resampling for non-BCa methods.
+Consequently, identical RNG seeds need not yield identical replicates
+between these two interfaces.
 }

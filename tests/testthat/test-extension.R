@@ -1,0 +1,108 @@
+test_that('the comprehensive API contains exactly 40 public functions', {
+  expect_length(getNamespaceExports('bambaganaCI'), 43L)
+  expect_true(all(vapply(getNamespaceExports('bambaganaCI'), function(n)
+    is.function(getExportedValue('bambaganaCI', n)), logical(1))))
+})
+test_that('summary and interval utilities give independently known answers', {
+  d <- describe_numeric(1:5)
+  expect_equal(d$mean, 3); expect_equal(d$variance, 2.5)
+  expect_equal(d$median, 3); expect_equal(d$n, 5)
+  expect_equal(mean_se(1:5), sqrt(.5))
+  expect_equal(mc_se(950, 1000), sqrt(.95*.05/1000))
+  expect_equal(ci_width(18, 42), 24)
+  expect_true(ci_contains(18, 42, 18)); expect_false(ci_contains(18, 42, 43))
+  expect_equal(covariance_estimate(1:5, 2*(1:5)), 5)
+  expect_equal(correlation_estimate(1:5, 2*(1:5)), 1)
+})
+test_that('interval construction matches independent R references', {
+  x <- c(1, 3, 2, 7, 5, 6, 8, 10, 11, 4)
+  y <- c(3, 2, 5, 4, 9, 8, 6, 12, 10, 7)
+  for (conf in c(.8, .95, .99)) {
+    z <- mean_z_ci(x, 2, conf)
+    expect_equal(c(z$lower, z$upper), mean(x)+c(-1,1)*qnorm((1+conf)/2)*2/sqrt(10))
+    v <- variance_ci(x, conf)
+    expect_equal(c(v$lower,v$upper), 9*var(x)/qchisq(c((1+conf)/2,(1-conf)/2),9))
+    expect_equal(sd_ci(x,conf)$upper,sqrt(v$upper))
+    for (equal in c(FALSE,TRUE)) {
+      a <- mean_difference_ci(x,y,conf,var_equal=equal)
+      expect_equal(c(a$lower,a$upper),as.numeric(t.test(x,y,conf.level=conf,var.equal=equal)$conf.int))
+    }
+    a <- paired_mean_ci(x,y,conf)
+    expect_equal(c(a$lower,a$upper),as.numeric(t.test(x,y,paired=TRUE,conf.level=conf)$conf.int))
+    a <- variance_ratio_ci(x,y,conf)
+    expect_equal(c(a$lower,a$upper),as.numeric(var.test(x,y,conf.level=conf)$conf.int))
+    a <- correlation_ci(x,y,conf)
+    expect_equal(c(a$lower,a$upper),as.numeric(cor.test(x,y,conf.level=conf)$conf.int))
+    for (success in c(0,40,100)) {
+      a <- proportion_ci(success,100,conf,'exact')
+      expect_equal(c(a$lower,a$upper),as.numeric(binom.test(success,100,conf.level=conf)$conf.int))
+      a <- proportion_ci(success,100,conf,'wilson')
+      # Wilson via independent inversion of R's score-test implementation.
+      ref <- suppressWarnings(prop.test(success,100,conf.level=conf,correct=FALSE))
+      expect_equal(c(a$lower,a$upper),as.numeric(ref$conf.int),tolerance=1e-12)
+    }
+    a <- proportion_difference_ci(40,100,25,100,conf)
+    expect_equal(c(a$lower,a$upper),as.numeric(prop.test(c(40,25),c(100,100),conf.level=conf)$conf.int))
+  }
+  a <- median_ci(1:20)
+  expect_equal(c(a$lower,a$upper),c(6,15))
+  expect_equal(a$minimum_coverage,1-2*pbinom(5,20,.5))
+  expect_warning(small <- median_ci(1:2), 'too small')
+  expect_equal(c(small$lower,small$upper),c(-Inf,Inf))
+})
+test_that('tests retain reference statistics and probability semantics', {
+  x <- c(1,3,2,7,5,6,8,10,11,4); y <- c(3,2,5,4,9,8,6,12,10,7)
+  for (alternative in c('two.sided','less','greater')) {
+    expect_equal(mean_test(x,2,alternative)$p.value,t.test(x,mu=2,alternative=alternative)$p.value)
+    expect_equal(paired_mean_test(x,y,alternative=alternative)$p.value,t.test(x,y,paired=TRUE,alternative=alternative)$p.value)
+    expect_equal(two_mean_test(x,y,alternative=alternative)$p.value,t.test(x,y,alternative=alternative)$p.value)
+    expect_equal(proportion_test(40,100,alternative=alternative)$p.value,binom.test(40,100,alternative=alternative)$p.value)
+    expect_equal(two_proportion_test(40,100,25,100,alternative=alternative)$p.value,prop.test(c(40,25),c(100,100),alternative=alternative)$p.value)
+    expect_equal(variance_ratio_test(x,y,alternative=alternative)$p.value,var.test(x,y,alternative=alternative)$p.value)
+    expect_equal(correlation_test(x,y,alternative=alternative)$p.value,cor.test(x,y,alternative=alternative)$p.value)
+    s <- variance_test(x,2,alternative); statistic <- 9*var(x)/2
+    ref <- switch(alternative,two.sided=2*min(pchisq(statistic,9),pchisq(statistic,9,lower.tail=FALSE)),less=pchisq(statistic,9),greater=pchisq(statistic,9,lower.tail=FALSE))
+    expect_equal(s$p.value,ref)
+  }
+  tab <- matrix(c(20,30,35,15),2)
+  expect_equal(chisq_independence_test(tab)$p.value,chisq.test(tab)$p.value)
+  expect_equal(sign_test(x,5)$p.value,binom.test(5,9,.5)$p.value)
+  expect_equal(wilcoxon_one_test(x,exact=FALSE)$p.value,wilcox.test(x,exact=FALSE)$p.value)
+  expect_equal(wilcoxon_two_test(x,y,exact=FALSE)$p.value,wilcox.test(x,y,exact=FALSE)$p.value)
+  expect_equal(wilcoxon_paired_test(x,y,exact=FALSE)$p.value,wilcox.test(x,y,paired=TRUE,exact=FALSE)$p.value)
+})
+test_that('regression, ANOVA and power planning agree with references', {
+  fit <- ols_fit(mpg ~ wt + hp, mtcars); ref <- lm(mpg ~ wt + hp, mtcars)
+  expect_equal(coef(fit),coef(ref)); expect_equal(ols_coef_ci(fit),confint(ref))
+  new <- data.frame(wt=c(2,3),hp=c(100,150))
+  for (interval in c('confidence','prediction'))
+    expect_equal(ols_predict_ci(fit,new,interval=interval),predict(ref,new,interval=interval))
+  x <- c(1:5,3:7,8:12); g <- rep(c('A','B','C'),each=5)
+  a <- anova_oneway(x,g); b <- aov(x~factor(g))
+  expect_equal(unname(summary(a)[[1]][['F value']]),unname(summary(b)[[1]][['F value']]))
+  expect_equal(unname(anova_tukey(a)$group),unname(TukeyHSD(b)[[1]]))
+  for (type in c('one.sample','two.sample','paired')) {
+    expect_equal(mean_power(30,.5,type=type)$power,power.t.test(n=30,delta=.5,type=type,strict=TRUE)$power)
+    a <- sample_size_mean(.5,type=type)
+    expect_equal(a$n,ceiling(power.t.test(delta=.5,power=.8,type=type,strict=TRUE)$n))
+    expect_gte(a$achieved_power,.8)
+  }
+})
+test_that('invalid inputs fail rather than silently omit or coerce observations', {
+  for (bad in list(c(1,NA),c(1,Inf),c(1,NaN),1:3+1i,matrix(1:4,2),numeric(0))) {
+    expect_error(describe_numeric(bad)); expect_error(mean_se(bad))
+    expect_error(mean_test(bad)); expect_error(median_ci(bad))
+  }
+  expect_error(proportion_ci(2.5,10)); expect_error(proportion_ci(11,10))
+  expect_error(proportion_test(-1,10)); expect_error(mc_se(1,0))
+  expect_error(ci_width(5,1)); expect_error(ci_contains(5,1,3))
+  expect_error(mean_z_ci(1:10,-1)); expect_error(variance_ci(rep(1,10)))
+  expect_error(paired_mean_ci(1:10,1:9)); expect_error(sign_test(rep(0,10)))
+  expect_error(correlation_estimate(rep(1,10),1:10)); expect_error(correlation_ci(1:3,2:4))
+  expect_error(chisq_independence_test(matrix(c(1,-1,2,3),2)))
+  expect_error(ols_fit(mpg~wt+I(2*wt),mtcars))
+  missing <- mtcars; missing$mpg[1] <- NA; expect_error(ols_fit(mpg~wt,missing))
+  expect_error(anova_oneway(1:5,rep('A',5)))
+  expect_error(mean_power(2.5,.5)); expect_error(sample_size_mean(0))
+  expect_error(sample_size_mean(.5,power=.01))
+})

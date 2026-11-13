@@ -6,7 +6,7 @@ test_that("print methods reject invalid digits", {
     for (bad in list(NA_real_, Inf, NaN, 0, -1, 2.5, 23, c(2, 3), "four")) {
       expect_error(print(result, digits = bad), "digits must")
     }
-    expect_output(print(result, digits = 6), "Interval")
+    expect_output(print(result, digits = 6), "Confidence interval")
   }
 })
 

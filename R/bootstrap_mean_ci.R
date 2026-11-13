@@ -161,21 +161,74 @@ bootstrap_mean_ci <- function(x, B = 2000, conf = 0.95,
 #' @param ... Additional arguments (currently unused).
 #' @return Invisibly returns x.
 #' @export
+
 print.bootmean_ci <- function(x, digits = 4L, ...) {
-  if (!is.numeric(digits) || length(digits) != 1L ||
-      !is.finite(digits) || digits != floor(digits) ||
-      digits < 1L || digits > 22L) {
-    stop("digits must be a single whole number from 1 to 22.")
+
+  dots <- list(...)
+
+  details <- if (is.null(dots$details)) {
+    FALSE
+  } else {
+    dots$details
   }
-  cat(sprintf("%g%% %s bootstrap confidence interval for the mean\n",
-              100 * x$conf, x$method))
-  cat("Sample size:", x$n, " | Resamples:", x$B, "\n")
-  cat("Estimate:", format(signif(x$estimate, digits)), "\n")
-  cat("Interval: [", format(signif(x$lower, digits)), ", ",
-      format(signif(x$upper, digits)), "]\n", sep = "")
-  cat("Bootstrap standard error:", format(signif(x$bootstrap_se, digits)), "\n")
+
+  if (!is.logical(details) ||
+      length(details) != 1L ||
+      is.na(details)) {
+    stop("details must be TRUE or FALSE.")
+  }
+
+  if (!is.numeric(digits) ||
+      length(digits) != 1L ||
+      !is.finite(digits) ||
+      digits != floor(digits) ||
+      digits < 1L || digits > 15L) {
+    stop("digits must be a whole number between 1 and 15.")
+  }
+
+  bambagana_show(
+    x,
+    digits = digits,
+    title = "Bootstrap mean confidence interval"
+  )
+
   if (isTRUE(x$diagnostics$constant_data)) {
     cat("Constant observed data: zero width does not imply zero population uncertainty.\n")
   }
+
+  if (details) {
+
+    cat("\nTechnical details:\n")
+
+    if (!is.null(x$bootstrap_se)) {
+      cat(
+        "Bootstrap standard error:",
+        signif(x$bootstrap_se, digits),
+        "\n"
+      )
+    }
+
+    if (!is.null(x$diagnostics)) {
+      cat("Diagnostics:\n")
+
+      for (name in names(x$diagnostics)) {
+        value <- x$diagnostics[[name]]
+
+        cat(
+          " ", name, ": ",
+          paste(value, collapse = ", "),
+          "\n",
+          sep = ""
+        )
+      }
+    }
+
+    cat(
+      "Bootstrap replicates stored:",
+      length(x$bootstrap_means),
+      "\n"
+    )
+  }
+
   invisible(x)
 }

@@ -4,7 +4,7 @@ test_that("default percentile output remains compatible", {
   expect_equal(c(out$estimate, out$lower, out$upper), c(30, 18, 42))
   expect_s3_class(out, "bootmean_ci")
   expect_equal(out$n, 5)
-  expect_output(print(out), "95% percentile")
+  expect_output(print(out), "Method:[[:space:]]+percentile")
 })
 
 test_that("constant observations behave consistently across methods", {

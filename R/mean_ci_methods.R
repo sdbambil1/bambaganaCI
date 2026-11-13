@@ -56,17 +56,52 @@ as.data.frame.mean_ci <- function(x, row.names = NULL, optional = FALSE, ...) {
 
 #' @rdname mean_ci_methods
 #' @export
+
 print.mean_t_ci <- function(x, digits = 4L, ...) {
-  if (!is.numeric(digits) || length(digits) != 1L ||
-      !is.finite(digits) || digits != floor(digits) ||
-      digits < 1L || digits > 22L) {
-    stop("digits must be a single whole number from 1 to 22.")
+
+  dots <- list(...)
+
+  details <- if (is.null(dots$details)) {
+    FALSE
+  } else {
+    dots$details
   }
-  cat(sprintf("%g%% standard t confidence interval for the mean\n", 100 * x$conf))
-  cat("Sample size:", x$n, " | Degrees of freedom:", x$df, "\n")
-  cat("Estimate:", format(signif(x$estimate, digits)), "\n")
-  cat("Interval: [", format(signif(x$lower, digits)), ", ",
-      format(signif(x$upper, digits)), "]\n", sep = "")
-  cat("Standard error:", format(signif(x$standard_error, digits)), "\n")
+
+  if (!is.logical(details) ||
+      length(details) != 1L ||
+      is.na(details)) {
+    stop("details must be TRUE or FALSE.")
+  }
+
+  if (!is.numeric(digits) ||
+      length(digits) != 1L ||
+      !is.finite(digits) ||
+      digits != floor(digits) ||
+      digits < 1L || digits > 15L) {
+    stop("digits must be a whole number between 1 and 15.")
+  }
+
+  bambagana_show(
+    x,
+    digits = digits,
+    title = "One-sample mean confidence interval"
+  )
+
+  if (details) {
+
+    cat("\nTechnical details:\n")
+
+    cat("Degrees of freedom:", x$df, "\n")
+    cat("Standard error:",
+        signif(x$standard_error, digits), "\n")
+
+    if (!is.null(x$assumptions)) {
+      cat("Assumptions:",
+          paste(x$assumptions, collapse = " "), "\n")
+    }
+
+    cat("Method:", x$method, "\n")
+  }
+
   invisible(x)
 }

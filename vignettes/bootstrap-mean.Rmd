@@ -110,3 +110,103 @@ warnings should be inspected rather than suppressed in routine analysis.
 ```{r}
 sessionInfo()
 ```
+
+
+## Empirical coverage and reliability
+
+A confidence interval that is computed successfully does not
+necessarily achieve its nominal coverage probability. Bootstrap
+performance depends on the population distribution, sample size,
+and interval construction.
+
+### Simulation design
+
+A reproducible Monte Carlo study compared the BCa bootstrap
+interval with the classical Student t interval.
+
+- Random seed: 1998
+- Confidence level: 95%
+- Independent datasets: 1,000 per configuration
+- Bootstrap resamples per dataset: 1,999
+- Sample sizes: 20 and 50
+- Populations: Exponential(rate = 1) and Student t(df = 3)
+
+The population means were 1 and 0, respectively. Both intervals
+were evaluated on the same simulated datasets.
+
+### Empirical coverage
+
+| Population | Sample size | BCa coverage | Student t coverage |
+|:-----------|------------:|-------------:|-------------------:|
+| Exponential(1) | 20 | 90.6% | 91.3% |
+| Exponential(1) | 50 | 92.6% | 93.2% |
+| Student t(3) | 20 | 89.5% | 96.2% |
+| Student t(3) | 50 | 91.4% | 95.0% |
+
+All 4,000 BCa intervals were computed successfully, with no
+warnings in this experiment.
+
+The BCa coverage estimates had Monte Carlo standard errors
+of approximately 0.0083 to 0.0097. These quantify simulation
+uncertainty, not uncertainty in individual confidence intervals.
+
+### Paired comparison
+
+The estimated BCa-minus-t coverage differences were:
+
+| Population | Sample size | Difference | Paired MCSE |
+|:-----------|------------:|-----------:|------------:|
+| Exponential(1) | 20 | -0.007 | 0.0066 |
+| Exponential(1) | 50 | -0.006 | 0.0057 |
+| Student t(3) | 20 | -0.067 | 0.0080 |
+| Student t(3) | 50 | -0.036 | 0.0062 |
+
+The heavy-tailed settings showed substantially lower BCa
+coverage than the classical t benchmark in this experiment.
+These findings do not establish that one method is universally
+preferable.
+
+### Numerical stability
+
+An earlier paired diagnostic compared 399 and 1,999 bootstrap
+resamples using 200 datasets per population at sample size 20.
+
+Seven warnings concerning extreme order statistics occurred
+with 399 resamples, compared with none at 1,999 resamples
+in that diagnostic.
+
+Increasing the number of bootstrap resamples can reduce
+bootstrap Monte Carlo variability. It does not eliminate
+sampling bias, guarantee nominal coverage, or correct
+dependence and other violations of statistical assumptions.
+
+The package retains its default of 2,000 resamples.
+Users may specify a different value through the B argument.
+
+### Reference implementation
+
+The BCa calculation uses boot::boot() for resampling and
+boot::boot.ci() for interval construction.
+
+A separate numerical verification compared the package
+wrapper directly with these functions using normal,
+exponential, and Student t(3) samples. All three comparisons
+reproduced the reference bootstrap replicates and interval
+endpoints to numerical tolerance.
+
+This establishes agreement with the reference implementation
+for the tested inputs, not universal coverage validity.
+
+### Practical interpretation
+
+- Inspect the distribution and dependence structure of the data.
+- Do not interpret successful interval computation as proof
+  of correct coverage.
+- Treat extreme-order-statistic warnings as useful diagnostics.
+- Use larger bootstrap resample counts when Monte Carlo
+  stability is important.
+- Consider sensitivity analyses when samples are small,
+  highly skewed, or heavy-tailed.
+
+The earlier validation study described in the package
+documentation remains separate from this experiment.

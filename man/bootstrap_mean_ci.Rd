@@ -36,6 +36,9 @@ Basic intervals reflect these quantiles about the sample mean. Normal
 intervals use the bootstrap standard error and estimated bias correction.
 BCa intervals delegate to boot::boot.ci, with influence values x - mean(x).
 BCa uses boot's interpolation convention, rather than type-7 quantiles.
+The non-BCa methods use sample() resampling for backwards compatibility,
+whereas BCa and compare_mean_ci use boot::boot(). Consequently, the same
+seed need not generate identical replicates across those entry points.
 BCa needs at least three nonconstant observations and can be unstable for
 small samples. Warnings from boot are retained. Set the seed outside this
 function. Increasing B reduces resampling noise, not sampling bias or
