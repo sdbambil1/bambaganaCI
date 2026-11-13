@@ -34,9 +34,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/bambagana-check"
-          R CMD build . --output="$RUNNER_TEMP/bambagana-check" 2>&1 | tee "$RUNNER_TEMP/bambagana-check/build.log"
-          cd "$RUNNER_TEMP/bambagana-check"
+          R CMD build . 2>&1 | tee build.log
           R CMD check --as-cran --no-manual bambaganaCI_0.3.4.tar.gz 2>&1 | tee check-console.log
           grep '^Status:' bambaganaCI.Rcheck/00check.log
 
@@ -46,7 +44,7 @@ jobs:
         with:
           name: linux-cran-v034-logs
           path: |
-            ${{ runner.temp }}/bambagana-check/build.log
-            ${{ runner.temp }}/bambagana-check/check-console.log
-            ${{ runner.temp }}/bambagana-check/bambaganaCI.Rcheck/00check.log
+            build.log
+            check-console.log
+            bambaganaCI.Rcheck/00check.log
           if-no-files-found: warn
