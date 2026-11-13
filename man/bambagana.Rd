@@ -14,7 +14,7 @@ bambagana(task, ..., display = TRUE)
 \item{task}{Character string identifying the analysis.}
 
 
-\item{...}{Analysis-specific arguments passed to the selected statistical function. For example, \code{x} supplies the first data vector, \code{y} supplies a second vector where needed, and \code{conf} specifies the confidence level (default 0.95 for supported interval methods). Other arguments depend on the selected analysis. Use \code{bambagana("all functions")} to inspect the available functions and arguments.Named options supported by the selected analysis.}
+\item{...}{Analysis-specific arguments passed to the selected statistical function. For example, \code{x} supplies the first data vector, \code{y} supplies a second vector where needed, and \code{conf} specifies the confidence level (default 0.95 for supported interval methods). Other arguments depend on the selected analysis. Use \code{bambagana("all functions")} to inspect the available functions and arguments.}
 
 \item{display}{If \code{TRUE}, display the formatted result.
 If \code{FALSE}, suppress the interface display.}
