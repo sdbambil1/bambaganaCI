@@ -8,6 +8,21 @@
 
 bambaganaCI provides a beginner-friendly `bambagana()` interface for descriptive statistics, confidence intervals, bootstrap methods, hypothesis testing, association measures, linear regression, analysis of variance, and power planning. The original statistical functions remain directly accessible. The package implements or interfaces with established methods rather than proposing new statistical theory.
 
+## Why this package?
+
+Base R and established packages already provide the statistical procedures used here.
+The purpose of bambaganaCI is to make common inference tasks easier to find and
+run through one interface, not to introduce new estimators or replace those tools.
+Users can describe a task with readable names through `bambagana()`, browse
+available functions with `bambagana("all functions")`, and call the individual
+functions directly when they need their arguments or return values. The interface
+delegates calculations to the package's existing functions and retains the
+underlying statistical results.
+
+For example, `bambagana("confidence interval", x)` routes to the mean interval
+procedure; it does not choose a method based on the data. Users must still
+select procedures appropriate to their study design and assumptions.
+
 ## Installation
 
 Install the released version from GitHub:
