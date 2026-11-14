@@ -95,8 +95,9 @@ bootstrap$lower <= 2 && 2 <= bootstrap$upper
 
 The authors' 10,000-dataset stress studies found substantial BCa undercoverage
 and percentile undercoverage for scaled t(3) and contaminated normal data at
-sample sizes 30 and 100. See the README for the reported results. Finite variance
-alone does not guarantee BCa higher-order accuracy. The mean remains sensitive
+sample sizes 30 and 100. These findings concern the evaluated simulation
+settings; they do not establish coverage properties for other populations.
+Finite variance alone does not guarantee BCa higher-order accuracy. The mean remains sensitive
 to outliers, and ordinary resampling is inappropriate for clustered or dependent
 data without a suitable design.
 
