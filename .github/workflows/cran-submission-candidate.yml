@@ -1,0 +1,70 @@
+name: CRAN submission candidate validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - DESCRIPTION
+      - vignettes/bootstrap-mean.Rmd
+      - .github/workflows/cran-submission-candidate.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out final source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up current R release
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - name: Install build dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+          extra-packages: any::rcmdcheck
+          needs: check
+      - name: Verify only documented source changed since v0.3.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sed -n 's/^Version: //p' DESCRIPTION)" = "0.3.4"
+          git diff --exit-code v0.3.4 HEAD -- R tests NAMESPACE man
+          git diff --name-only v0.3.4 HEAD | tee changed-files.txt
+          if git diff --name-only v0.3.4 HEAD | grep -Ev '^(DESCRIPTION|vignettes/bootstrap-mean.Rmd|.github/workflows/cran-submission-candidate.yml)$'; then
+            echo "Unexpected changes since release tag" >&2
+            exit 1
+          fi
+      - name: Build and check final archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          R --version | head -n 2
+          R CMD build .
+          test -s bambaganaCI_0.3.4.tar.gz
+          sha256sum bambaganaCI_0.3.4.tar.gz | tee submission-archive.sha256
+          R CMD check --as-cran --no-manual bambaganaCI_0.3.4.tar.gz 2>&1 | tee submission-check.log
+          grep -E '^Status: ' bambaganaCI.Rcheck/00check.log
+          if grep -Eq '^Status: [1-9][0-9]* ERROR|[1-9][0-9]* WARNING' bambaganaCI.Rcheck/00check.log; then
+            echo "CRAN check has errors/warnings" >&2
+            exit 1
+          fi
+      - name: Upload candidate archive and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bambaganaCI-v034-cran-candidate
+          path: |
+            bambaganaCI_0.3.4.tar.gz
+            submission-archive.sha256
+            submission-check.log
+            bambaganaCI.Rcheck/00check.log
+            changed-files.txt
+          if-no-files-found: warn
