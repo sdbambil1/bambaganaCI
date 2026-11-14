@@ -1,9 +1,9 @@
 ^FUNCTIONS\.md$
 ^README\.md$
 ^\.github$
-^LICENSE\\.md$
-^Project_Report_Bambil_Babagana\\.(Rmd|pdf)$
-^bootmean\\.Rproj$
-^validate_exp100\\.R$
-^validation_exp100_.*\\.(csv|txt)$
-^changed-files\\.txt$
+^LICENSE\.md$
+^Project_Report_Bambil_Babagana\.(Rmd|pdf)$
+^bootmean\.Rproj$
+^validate_exp100\.R$
+^validation_exp100_.*\.(csv|txt)$
+^changed-files\.txt$
