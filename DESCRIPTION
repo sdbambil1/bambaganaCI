@@ -5,11 +5,13 @@ Authors@R: c(
     person("Silas", "Bambil", , "sbambil1@student.gsu.edu", role = c("aut", "cre")),
     person("Yasmeen", "Babagana", email = "ybabagana1@student.gsu.edu", role = "aut")
   )
-Description: Provides confidence intervals, tests, descriptive summaries,
-    association measures, classical linear-model inference, analysis of variance,
-    and model-based power planning. Retains bootstrap inference for a population
-    mean and adds validated interfaces to established statistical methods in R.
-    Documents method assumptions and preserves reference warnings.
+Description: Provides a common interface for descriptive statistics,
+    confidence intervals, hypothesis tests, association measures, linear-model
+    inference, analysis of variance, and model-based power planning. Readable task
+    names and a searchable function catalog help users locate established
+    statistical procedures without replacing their underlying implementations.
+    Direct function access and standard result objects remain available.
+    Method-specific documentation describes assumptions and limitations.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
