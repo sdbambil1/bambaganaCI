@@ -8,6 +8,33 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## What bambaganaCI adds
+
+Standard R functions and established packages already implement many of the
+statistical methods used here. bambaganaCI groups common inference tasks behind
+readable analysis names and a searchable catalog. This reduces the need to
+remember separate function names while preserving direct access to the original
+statistical functions and their results. It does not propose new estimators or
+automatically determine which method is appropriate for a dataset.
+
+For example, the readable command below delegates the calculation to the
+package's existing mean interval function. The direct call remains available
+and both results can be used programmatically.
+
+```{r unified-interface-example}
+library(bambaganaCI)
+sample_scores <- c(65, 72, 68, 75, 70, 78, 74, 69, 73, 76)
+via_interface <- bambagana("confidence interval", sample_scores,
+                          display = FALSE)
+via_function <- mean_t_ci(sample_scores)
+coef(via_interface)
+coef(via_function)
+```
+
+The interface simplifies access, not the underlying inferential assumptions.
+In particular, `"confidence interval"` here refers to a population mean, not
+an automatic interval for any possible parameter.
+
 ## Start with your question
 
 The package provides 40 statistical functions and a searchable method catalog.
