@@ -2,7 +2,7 @@ Package: bambaganaCI
 Title: Confidence Intervals and Classical Statistical Inference
 Version: 0.3.4
 Authors@R: c(
-    person("Silas", "Bambil", , "sbambil1@student.gsu.edu", role = c("aut", "cre")),
+    person("Silas", "Bambil", , "sdbambil98@gmail.com", role = c("aut", "cre")),
     person("Yasmeen", "Babagana", email = "ybabagana1@student.gsu.edu", role = "aut")
   )
 Description: Provides a common interface for descriptive statistics,
